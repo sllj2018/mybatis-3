@@ -56,7 +56,8 @@ public class ResultSetWrapper {
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
     for (int i = 1; i <= columnCount; i++) {
-      columnNames.add(configuration.isUseColumnLabel() ? metaData.getColumnLabel(i) : metaData.getColumnName(i));
+      String columnName = configuration.isUseColumnLabel() ? metaData.getColumnLabel(i) : metaData.getColumnName(i);
+      columnNames.add(columnName.toUpperCase());
       jdbcTypes.add(JdbcType.forCode(metaData.getColumnType(i)));
       classNames.add(metaData.getColumnClassName(i));
     }

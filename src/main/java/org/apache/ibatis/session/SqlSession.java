@@ -39,6 +39,8 @@ public interface SqlSession extends Closeable {
    */
   <T> T selectOne(String statement);
 
+  <T> T selectOne(Class<?> returnType, String statement);
+
   /**
    * Retrieve a single row mapped from the statement key and parameter.
    * @param <T> the returned object type
@@ -48,6 +50,8 @@ public interface SqlSession extends Closeable {
    */
   <T> T selectOne(String statement, Object parameter);
 
+  <T> T selectOne(Class<?> returnType, String statement, Object parameter);
+
   /**
    * Retrieve a list of mapped objects from the statement key and parameter.
    * @param <E> the returned list element type
@@ -55,6 +59,8 @@ public interface SqlSession extends Closeable {
    * @return List of mapped object
    */
   <E> List<E> selectList(String statement);
+
+  <E> List<E> selectList(Class<?> returnType, String statement);
 
   /**
    * Retrieve a list of mapped objects from the statement key and parameter.
@@ -64,6 +70,8 @@ public interface SqlSession extends Closeable {
    * @return List of mapped object
    */
   <E> List<E> selectList(String statement, Object parameter);
+
+  <E> List<E> selectList(Class<?> returnType, String statement, Object parameter);
 
   /**
    * Retrieve a list of mapped objects from the statement key and parameter,
@@ -75,6 +83,8 @@ public interface SqlSession extends Closeable {
    * @return List of mapped object
    */
   <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds);
+
+  <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds);
 
   /**
    * The selectMap is a special case in that it is designed to convert a list
@@ -152,6 +162,8 @@ public interface SqlSession extends Closeable {
    */
   void select(String statement, Object parameter, ResultHandler handler);
 
+  void select(Class<?> returnType, String statement, Object parameter, ResultHandler handler);
+
   /**
    * Retrieve a single row mapped from the statement
    * using a {@code ResultHandler}.
@@ -159,6 +171,8 @@ public interface SqlSession extends Closeable {
    * @param handler ResultHandler that will handle each retrieved row
    */
   void select(String statement, ResultHandler handler);
+
+  void select(Class<?> returnType, String statement, ResultHandler handler);
 
   /**
    * Retrieve a single row mapped from the statement key and parameter
@@ -168,6 +182,8 @@ public interface SqlSession extends Closeable {
    * @param handler ResultHandler that will handle each retrieved row
    */
   void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler);
+
+  void select(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds, ResultHandler handler);
 
   /**
    * Execute an insert statement.

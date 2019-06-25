@@ -166,6 +166,17 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
     return sqlSessionProxy.selectOne(statement, parameter);
   }
 
+
+  @Override
+  public <T> T selectOne(Class<?> returnType, String statement) {
+    return sqlSessionProxy.selectOne(returnType, statement);
+  }
+
+  @Override
+  public <T> T selectOne(Class<?> returnType, String statement, Object parameter) {
+    return sqlSessionProxy.selectOne(returnType, statement, parameter);
+  }
+
   @Override
   public <K, V> Map<K, V> selectMap(String statement, String mapKey) {
     return sqlSessionProxy.selectMap(statement, mapKey);
@@ -212,6 +223,21 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
   }
 
   @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement) {
+    return sqlSessionProxy.selectList(returnType, statement);
+  }
+
+  @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter) {
+    return sqlSessionProxy.selectList(returnType, statement, parameter);
+  }
+
+  @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds) {
+    return sqlSessionProxy.selectList(returnType, statement, parameter, rowBounds);
+  }
+
+  @Override
   public void select(String statement, ResultHandler handler) {
     sqlSessionProxy.select(statement, handler);
   }
@@ -224,6 +250,21 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
   @Override
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     sqlSessionProxy.select(statement, parameter, rowBounds, handler);
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, Object parameter, ResultHandler handler) {
+    sqlSessionProxy.select(returnType, statement, parameter, handler);
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, ResultHandler handler) {
+    sqlSessionProxy.select(returnType, statement, handler);
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
+    sqlSessionProxy.select(returnType, statement, parameter, rowBounds, handler);
   }
 
   @Override

@@ -18,11 +18,7 @@ package org.apache.ibatis.session.defaults;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.cursor.Cursor;
@@ -34,6 +30,10 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.result.DefaultMapResultHandler;
 import org.apache.ibatis.executor.result.DefaultResultContext;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -74,6 +74,23 @@ public class DefaultSqlSession implements SqlSession {
   public <T> T selectOne(String statement, Object parameter) {
     // Popular vote was to return null on 0 results and throw exception on too many.
     List<T> list = this.selectList(statement, parameter);
+    if (list.size() == 1) {
+      return list.get(0);
+    } else if (list.size() > 1) {
+      throw new TooManyResultsException("Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public <T> T selectOne(Class<?> returnType, String statement) {
+    return selectOne(returnType, statement, null);
+  }
+
+  @Override
+  public <T> T selectOne(Class<?> returnType, String statement, Object parameter) {
+    List<T> list = this.selectList(returnType, statement, parameter);
     if (list.size() == 1) {
       return list.get(0);
     } else if (list.size() > 1) {
@@ -153,6 +170,28 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement) {
+    return selectList(returnType, statement, null);
+  }
+
+  @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter) {
+    return selectList(returnType, statement, parameter, RowBounds.DEFAULT);
+  }
+
+  @Override
+  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds) {
+    try {
+      MappedStatement ms = getMappedStatement(statement, parameter == null ? Object.class : parameter.getClass(), returnType);
+      return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+
+  @Override
   public void select(String statement, Object parameter, ResultHandler handler) {
     select(statement, parameter, RowBounds.DEFAULT, handler);
   }
@@ -166,6 +205,28 @@ public class DefaultSqlSession implements SqlSession {
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
       MappedStatement ms = configuration.getMappedStatement(statement);
+      executor.query(ms, wrapCollection(parameter), rowBounds, handler);
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, ResultHandler handler) {
+    select(returnType, statement, null, handler);
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, Object parameter, ResultHandler handler) {
+    select(returnType, statement, parameter, RowBounds.DEFAULT, handler);
+  }
+
+  @Override
+  public void select(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
+    try {
+      MappedStatement ms = getMappedStatement(statement, parameter == null ? Object.class : parameter.getClass(), returnType);
       executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -330,6 +391,16 @@ public class DefaultSqlSession implements SqlSession {
       return map;
     }
     return object;
+  }
+
+  private MappedStatement getMappedStatement(String sql, Class<?> parameterType, Class<?> returnType){
+    SqlSource sqlSource = new RawSqlSource(configuration, sql, parameterType);
+    ResultMap.Builder maBuilder = new ResultMap.Builder(configuration, UUID.randomUUID().toString(), returnType, new ArrayList<>(0));
+    List<ResultMap> resultMaps = new ArrayList<>(1);
+    resultMaps.add(maBuilder.build());
+    MappedStatement.Builder builder = new MappedStatement.Builder(configuration, sql, sqlSource, SqlCommandType.SELECT);
+    builder.resultMaps(resultMaps);
+    return builder.build();
   }
 
   public static class StrictMap<V> extends HashMap<String, V> {
