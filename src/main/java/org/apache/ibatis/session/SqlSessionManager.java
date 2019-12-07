@@ -168,12 +168,12 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
 
 
   @Override
-  public <T> T selectOne(Class<?> returnType, String statement) {
+  public <T> T selectOne(Class<? extends T> returnType, String statement) {
     return sqlSessionProxy.selectOne(returnType, statement);
   }
 
   @Override
-  public <T> T selectOne(Class<?> returnType, String statement, Object parameter) {
+  public <T> T selectOne(Class<? extends T> returnType, String statement, Object parameter) {
     return sqlSessionProxy.selectOne(returnType, statement, parameter);
   }
 
@@ -223,17 +223,17 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement) {
     return sqlSessionProxy.selectList(returnType, statement);
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter) {
     return sqlSessionProxy.selectList(returnType, statement, parameter);
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter, RowBounds rowBounds) {
     return sqlSessionProxy.selectList(returnType, statement, parameter, rowBounds);
   }
 
@@ -309,6 +309,11 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
       throw new SqlSessionException("Error:  Cannot get connection.  No managed session is started.");
     }
     return sqlSession.getConnection();
+  }
+
+  @Override
+  public DbType getDbType() {
+    return sqlSessionProxy.getDbType();
   }
 
   @Override

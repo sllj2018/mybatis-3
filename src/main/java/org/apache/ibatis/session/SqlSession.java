@@ -39,7 +39,7 @@ public interface SqlSession extends Closeable {
    */
   <T> T selectOne(String statement);
 
-  <T> T selectOne(Class<?> returnType, String statement);
+  <T> T selectOne(Class<? extends T> returnType, String statement);
 
   /**
    * Retrieve a single row mapped from the statement key and parameter.
@@ -50,7 +50,7 @@ public interface SqlSession extends Closeable {
    */
   <T> T selectOne(String statement, Object parameter);
 
-  <T> T selectOne(Class<?> returnType, String statement, Object parameter);
+  <T> T selectOne(Class<? extends T> returnType, String statement, Object parameter);
 
   /**
    * Retrieve a list of mapped objects from the statement key and parameter.
@@ -60,7 +60,7 @@ public interface SqlSession extends Closeable {
    */
   <E> List<E> selectList(String statement);
 
-  <E> List<E> selectList(Class<?> returnType, String statement);
+  <E> List<E> selectList(Class<? extends E> returnType, String statement);
 
   /**
    * Retrieve a list of mapped objects from the statement key and parameter.
@@ -71,7 +71,7 @@ public interface SqlSession extends Closeable {
    */
   <E> List<E> selectList(String statement, Object parameter);
 
-  <E> List<E> selectList(Class<?> returnType, String statement, Object parameter);
+  <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter);
 
   /**
    * Retrieve a list of mapped objects from the statement key and parameter,
@@ -84,7 +84,7 @@ public interface SqlSession extends Closeable {
    */
   <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds);
 
-  <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds);
+  <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter, RowBounds rowBounds);
 
   /**
    * The selectMap is a special case in that it is designed to convert a list
@@ -296,4 +296,7 @@ public interface SqlSession extends Closeable {
    * @return Connection
    */
   Connection getConnection();
+
+  DbType getDbType();
+
 }

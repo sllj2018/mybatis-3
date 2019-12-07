@@ -34,10 +34,7 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.ResultHandler;
-import org.apache.ibatis.session.RowBounds;
-import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.*;
 
 /**
  * The default implementation for {@link SqlSession}.
@@ -84,12 +81,12 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   @Override
-  public <T> T selectOne(Class<?> returnType, String statement) {
+  public <T> T selectOne(Class<? extends T> returnType, String statement) {
     return selectOne(returnType, statement, null);
   }
 
   @Override
-  public <T> T selectOne(Class<?> returnType, String statement, Object parameter) {
+  public <T> T selectOne(Class<? extends T> returnType, String statement, Object parameter) {
     List<T> list = this.selectList(returnType, statement, parameter);
     if (list.size() == 1) {
       return list.get(0);
@@ -170,17 +167,17 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement) {
     return selectList(returnType, statement, null);
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter) {
     return selectList(returnType, statement, parameter, RowBounds.DEFAULT);
   }
 
   @Override
-  public <E> List<E> selectList(Class<?> returnType, String statement, Object parameter, RowBounds rowBounds) {
+  public <E> List<E> selectList(Class<? extends E> returnType, String statement, Object parameter, RowBounds rowBounds) {
     try {
       MappedStatement ms = getMappedStatement(statement, parameter == null ? Object.class : parameter.getClass(), returnType);
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
@@ -254,7 +251,7 @@ public class DefaultSqlSession implements SqlSession {
   public int update(String statement, Object parameter) {
     try {
       dirty = true;
-      MappedStatement ms = configuration.getMappedStatement(statement);
+      MappedStatement ms = getMappedStatement(statement, parameter == null ? Object.class : parameter.getClass());
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
@@ -362,6 +359,17 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   @Override
+  public DbType getDbType() {
+    Connection connection = getConnection();
+    switch (connection.getClass().getName()){
+      case "":
+        return DbType.SQLSERVER;
+    }
+
+    return DbType.SQLSERVER;
+  }
+
+  @Override
   public void clearCache() {
     executor.clearLocalCache();
   }
@@ -391,6 +399,15 @@ public class DefaultSqlSession implements SqlSession {
       return map;
     }
     return object;
+  }
+
+  private MappedStatement getMappedStatement(String sql, Class<?> parameterType){
+    if (configuration.hasStatement(sql)){
+      return configuration.getMappedStatement(sql);
+    }
+    SqlSource sqlSource = new RawSqlSource(configuration, sql, parameterType);
+    MappedStatement.Builder builder = new MappedStatement.Builder(configuration, sql, sqlSource, SqlCommandType.UPDATE);
+    return builder.build();
   }
 
   private MappedStatement getMappedStatement(String sql, Class<?> parameterType, Class<?> returnType){
