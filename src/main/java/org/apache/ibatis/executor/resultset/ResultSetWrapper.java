@@ -109,6 +109,10 @@ public class ResultSetWrapper {
     if (handler == null) {
       JdbcType jdbcType = getJdbcType(columnName);
       handler = typeHandlerRegistry.getTypeHandler(propertyType, jdbcType);
+
+      if(propertyType == Object.class){
+        handler = typeHandlerRegistry.getTypeHandler(jdbcType);
+      }
       // Replicate logic of UnknownTypeHandler#resolveTypeHandler
       // See issue #59 comment 10
       if (handler == null || handler instanceof UnknownTypeHandler) {
